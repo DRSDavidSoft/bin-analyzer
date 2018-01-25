@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+    <head>
+		  
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta id="viewport" name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+
+		<meta name="robots" content="noindex">
+			
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="theme-color" content="#e74c3c" />
+		
+        <title>Number Analyzer</title>
+        <style>
+            body,  textarea {
+                font-family: 'ubuntu mono', 'segoe ui mono', consolas, 'lucida console', monospace, sans-serif;
+				background: #e74c3c;
+				color: #ecf0f1;
+            }
+			
+			[contenteditable]::selection {
+				background-color: #f1c40f;
+				color: white;
+				text-shadow: 0 0 1px black;
+			}
+			
+			[contenteditable]:focus {
+				outline: 2px solid #f1c40f;
+			}
+			
+			table {margin: auto; margin-top: 50px;}
+			
+			* { 	box-sizing: border-box; }
+            
+            td {
+                /* border: 2px solid #c0392b; */
+                padding: 20px;
+				text-align: right;
+				text-transform: uppercase;
+				vertical-align: top;
+				line-height: 20px;
+            }
+			
+			td div {line-height:0;}
+			
+			.on::selection, .off::selection, .sp::selection {
+				color: white;
+				background: transparent;
+				text-shadow: 0 0 1px black;
+			}
+            
+            .on, .off, .sp {
+				cursor: default;
+                display: inline-block;
+				position: relative;
+				overflow: hidden;
+				text-decoration: none;
+				/* text-indent: -100px; */
+                margin: 0; padding: 0;
+                width: 20px; height: 20px;
+				line-height: 20px;
+				text-align: center;
+				vertical-align: middle;
+				color: transparent;
+            }
+			
+			.on, .off {
+				box-shadow: inset 0 0 1px rgba(0,0,0,.3);
+			}
+            
+            .on  {background: #f1c40f;}
+            .off {background: rgba(0,0,0,.2);}
+			
+			.sp  {background: transparent;}
+        </style>
+    </head>
+
+    <body>
+        <!-- <textarea id="main_input" oninput="exchange(); transfer(1);"></textarea> -->
+        <table>
+            <tr>
+                <td id="input" contenteditable="true" oninput="transfer(1);" onkeypress="x = event.which; return x == 13 || x == 8 || (x >= 48 && x <= 57)">
+                    1<br>
+                    2<br>
+                    3<br>
+                </td>
+                <td id="hex" contenteditable="true" oninput="transfer(2);" onkeypress="console.log(event.which); return String.fromCharCode(event.which).match(/^[0-9a-f]$/i) || event.which == 13 || event.which == 8">
+                    
+                </td>
+                <td id="bin">
+                    
+                </td>            
+            </tr>
+        </table>
+        
+        <script>
+			//function exchange() {
+			//	input.innerHTML = main_input.value.replace(/[\r\n]+/g, '<br>'); 
+			//}
+			
+			function padbin (str, length) {
+				while (str.length < length) str = "0" + str;
+				return str;
+			}
+		
+            function transfer(notrep) {
+				if (notrep == 2) {
+					var numbers = hex.innerText.replace(/[^0-9a-f\n]/gi,'').replace(/\n$/, '').split('\n');
+					for (i in numbers) { if (numbers[i] == '') numbers[i] = '0'; numbers[i] = parseInt(numbers[i], 16); } 
+				} else
+                var numbers = input.innerText.replace(/[^0-9\n]/gi,'').replace(/\n$/, '').split('\n');
+                
+                var o_hex = [];
+                var o_bin = [];
+				
+				
+				
+				//main_input.value = '';
+				all = '';
+				
+				
+				//console.clear();
+				//console.log(numbers);
+				
+				padlen = 0;
+				
+				for (i in numbers) {
+					padlen = Math.max(padlen, parseInt(numbers[i]).toString(2).length );
+				}
+				
+				while ( padlen % 8 ) padlen++;
+                
+                for (i in numbers) {
+				
+					if (numbers[i] == '') numbers[i] = '0';
+					
+					isEmpty =
+						( isNaN(parseInt(numbers[i])) ) ||
+						( parseInt(numbers[i]) == 0 );
+						
+					//console.log (numbers[i], isEmpty, (isEmpty ? "" : parseInt(numbers[i])))
+					
+					//main_input.value += numbers[i] + '\n';
+					all += (isEmpty ? "" : numbers[i]) + '\n';
+					
+                    o_hex.push (isEmpty ? "" : parseInt(numbers[i]).toString(16).toUpperCase())
+                    o_bin.push (isEmpty ? "<div><ins class=sp> </ins></div>" : padbin ( parseInt(numbers[i]).toString(2), padlen )
+                               .replace(/1/g, '<ins class="on" @>1</ins>').replace(/0/g, '<ins class="off" @>0</ins>')
+							   .replace(/\@/g, 'onclick="toggle(this)"')
+							   .replace(/^(.+)$/, '<div>$1</div>')
+							)
+                    
+					
+                }
+				
+				//console.clear();
+				//console.log(numbers);
+				//console.log($0 = o_hex);
+				
+				if (notrep != 1) input.innerText = all.trim();
+				if (notrep != 2)                 
+                hex.innerText =  o_hex.join("\n") + "\n";
+                bin.innerHTML =  o_bin.join("\n");
+            }
+            
+            transfer()
+			
+			function toggle(obj) {
+				obj.className = 
+					(obj.className == 'on') ? "off" : "on";
+					
+				var siblings = obj.parentNode.getElementsByTagName('ins'), ret = "";
+				for (var i=0; i<siblings.length; i++) ret += siblings[i].className == "on" ? "1" : "0";
+				
+				var base = obj.parentNode.parentNode.getElementsByTagName('div'), order = 1;
+				for (var i=0; i<base.length; i++) { if (base[i] == obj.parentNode) break; else order++ }
+				
+				var all = input.innerText.split('\n');
+				all[order-1] = parseInt(ret, 2);
+				
+				input.innerText = all.join('\n');
+				
+				//exchange();
+				transfer();
+			}
+        
+        </script>
+        
+    </body>
+
+</html>
